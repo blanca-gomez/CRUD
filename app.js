@@ -2,8 +2,10 @@ const express = require('express');
 const app = express();
 const port = 3000;
 
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Lista de usuarios
 let usuarios = [
     { id: 1, nombre: 'Ryu', edad: 32, lugarProcedencia: 'Japón' },
     { id: 2, nombre: 'Chun-Li', edad: 29, lugarProcedencia: 'China' },
@@ -12,28 +14,12 @@ let usuarios = [
     { id: 5, nombre: 'Blanka', edad: 32, lugarProcedencia: 'Brasil' },
 ];
 
-
+//GET 
 app.get('/usuarios', (req, res) => {
-    res.send(`
-        <h1>PERSONAJES DE STREET FIGHTER</h1>
-        <ul>
-            ${usuarios.map((usuario) => `
-                <li>ID: ${usuario.id}, Nombre: ${usuario.nombre}, Edad: ${usuario.edad}, Lugar de procedencia: ${usuario.lugarProcedencia}</li>
-            `).join('')}
-        </ul>
-        <form action="/usuarios" method="post">
-            <label for="nombre">Nombre</label>
-            <input type="text" id="nombre" name="nombre" required>
-            <label for="edad">Edad</label>
-            <input type="number" id="edad" name="edad" required>
-            <label for="lugarProcedencia">Lugar de Procedencia</label>
-            <input type="text" id="lugarProcedencia" name="lugarProcedencia" required>
-            <button type="submit">Agregar usuario</button>
-        </form>
-    `);
+    res.send(usuarios);
 });
 
-
+//POST
 app.post('/usuarios', (req, res) => {
     const newUser = {
         id: usuarios.length + 1,
@@ -42,23 +28,41 @@ app.post('/usuarios', (req, res) => {
         lugarProcedencia: req.body.lugarProcedencia
     };
     usuarios.push(newUser);
-    res.send(`El usuario con ID: ${newUser.id}, nombre: ${newUser.nombre}, edad: ${newUser.edad}, lugar de procedencia: ${newUser.lugarProcedencia} ha sido agregado exitosamente.`);
+    res.send(newUser);
 });
 
-
+//GET /usuarios/:nombre
 app.get('/usuarios/:nombre', (req, res) => {
     const nombre = req.params.nombre.toLowerCase();
     const findUser = usuarios.find((user) => user.nombre.toLowerCase() === nombre);
-    if (findUser) {
-        res.json(findUser);
-    } else {
-        res.status(404).send(`Usuario no encontrado.`);
+    if(findUser) {
+        res.send(findUser)
     }
 });
 
+//PUT
+app.put('/usuarios/:nombre', (req, res) => {
+    const nombre = req.params.nombre.toLowerCase();
+    const findUser = usuarios.find((user) => user.nombre.toLowerCase() === nombre);
+    if(findUser){
+        findUser.id= req.body.id || findUser.id;
+        findUser.nombre = req.body.nombre || findUser.nombre;
+        findUser.edad = req.body.edad || findUser.edad;
+        findUser.lugarProcedencia = req.body.lugarProcedencia || findUser.lugarProcedencia;
+    }
+    res.send(findUser)
+})
 
+
+//DELETE
+app.delete('/usuarios/:id', (req, res) => {
+    const userID = parseInt(req.params.id);
+    const deleteUser = usuarios.filter(user => user.id !== userID);
+    usuarios = deleteUser
+    res.send(usuarios)
+})
 
 
 app.listen(port, () => {
-    console.log(`Express is listening on port ${port}`);
+    console.log(`Servidor escuchando en http://localhost:${port}`);
 });
